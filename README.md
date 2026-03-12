@@ -34,11 +34,4 @@ You can open `index.html` directly, but shared routes like `/trip/your-slug` wor
 - Your current database policy also allows public insert/update, which is fine for a prototype but not ideal for long-term production use.
 
 
-## Updating your live Netlify site
-
-1. Extract the zip.
-2. In Netlify, open your site dashboard.
-3. Go to **Deploys** and drag the updated project folder onto the page, or use **Add new deploy**.
-4. Wait for the new production deploy to finish, then hard refresh the site.
-
-If you prefer GitHub later, create a repo, upload these files, and connect the repo in Netlify.
+UI note: This package keeps the original simpler timeline UI and does not require the `cover_photo` column.

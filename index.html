@@ -425,11 +425,6 @@ header {
     </div>
     <button class="btn btn-primary" onclick="openNewTripModal()">✈ Start a New Trip</button>
   </div>
-  <div class="timeline-stats" id="timeline-stats">
-    <div class="stat-card"><div class="stat-label">Trips</div><div class="stat-value" id="stat-trips">0</div><div class="stat-note">Scrapbook pages created</div></div>
-    <div class="stat-card"><div class="stat-label">Photos</div><div class="stat-value" id="stat-photos">0</div><div class="stat-note">Memories pinned</div></div>
-    <div class="stat-card"><div class="stat-label">Places</div><div class="stat-value" id="stat-places">0</div><div class="stat-note">Destinations visited</div></div>
-  </div>
   <div class="timeline-line" id="timeline-container">
     <div class="empty-state" id="empty-state">
       <div class="empty-icon">🗺️</div>
@@ -524,27 +519,12 @@ header {
     <span>✈️ You're viewing a shared travel scrapbook page</span>
     <button class="btn btn-ghost btn-sm" onclick="showMainApp()">Create Your Own →</button>
   </div>
-  <div class="share-hero">
-    <div class="share-hero-card">
-      <div class="share-hero-media" id="share-hero-media"></div>
-      <div class="share-hero-copy">
-        <div class="share-kicker">Shared trip story</div>
-        <div class="share-title-large" id="share-hero-title"></div>
-        <div class="share-meta">
-          <span class="share-date" id="share-date"></span>
-          <span class="share-location" id="share-location-label"></span>
-        </div>
-        <p class="share-story-preview" id="share-story-preview"></p>
-        <div class="share-chips" id="share-chips"></div>
-      </div>
-    </div>
+  <div class="share-meta">
+    <span class="share-date" id="share-date"></span>
+    <span class="share-location" id="share-location-label"></span>
   </div>
   <div style="padding:32px 40px 0; max-width:980px; margin:0 auto;">
     <div class="scrapbook-page scrapbook-readonly" id="share-scrapbook-page"></div>
-  </div>
-  <div class="related-strip" id="related-strip" style="display:none;">
-    <h3>More adventures from this scrapbook</h3>
-    <div class="related-grid" id="related-grid"></div>
   </div>
   <div class="share-footer">
     <div class="share-footer-inner">
@@ -727,9 +707,6 @@ function renderTimeline() {
   const label = document.getElementById('trip-count-label');
   container.querySelectorAll('.timeline-item').forEach(e => e.remove());
   label.textContent = trips.length === 0 ? 'Your visual travel diary awaits.' : `${trips.length} trip${trips.length !== 1 ? 's' : ''} documented`;
-  document.getElementById('stat-trips').textContent = String(trips.length);
-  document.getElementById('stat-photos').textContent = String(trips.reduce((sum, trip) => sum + ((trip.photos || []).length), 0));
-  document.getElementById('stat-places').textContent = String(new Set(trips.map(trip => (trip.location || '').trim()).filter(Boolean)).size);
   if (trips.length === 0) { empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   const sorted = [...trips].sort((a,b) => (b.trip_date || b.created_at || '').localeCompare(a.trip_date || a.created_at || ''));
@@ -737,9 +714,8 @@ function renderTimeline() {
     const item = document.createElement('div');
     item.className = 'timeline-item';
     item.style.animationDelay = `${i * 0.06}s`;
-    const thumbSrc = trip.cover_photo || ((trip.photos && trip.photos.length > 0) ? trip.photos[0] : '');
-    const thumb = thumbSrc
-      ? `<img class="trip-card-thumb" src="${thumbSrc}" alt="cover">`
+    const thumb = (trip.photos && trip.photos.length > 0)
+      ? `<img class="trip-card-thumb" src="${trip.photos[0]}" alt="cover">`
       : `<div class="trip-card-thumb-placeholder">✈️</div>`;
     const excerpt = trip.story ? `<p class="trip-card-excerpt">${escapeHtml(trip.story.slice(0,110))}${trip.story.length>110?'…':''}</p>` : '';
     item.innerHTML = `
@@ -812,7 +788,6 @@ async function createTrip() {
     location: document.getElementById('modal-location').value.trim(),
     trip_date: document.getElementById('modal-date').value || null,
     story: '',
-    cover_photo: null,
     photos: [],
     stickers: [],
     is_public: true
@@ -900,7 +875,6 @@ async function savePage(silent = false) {
       story: payload.story,
       photos: payload.photos,
       stickers: payload.stickers,
-      cover_photo: payload.photos && payload.photos.length ? payload.photos[0] : null,
       is_public: true,
       updated_at: new Date().toISOString()
     });
@@ -937,7 +911,6 @@ async function processFiles(files) {
       await sleep(80);
     }
     trip.photos = [...(trip.photos || []), ...urls];
-    trip.cover_photo = trip.photos[0] || null;
     upsertTripInList(trip);
     currentTripCache = structuredCloneSafe(trip);
     const collage = document.getElementById('photo-collage');
@@ -969,7 +942,6 @@ async function removePhoto(idx, e) {
   const trip = trips.find(t => t.id === currentTripId);
   if (!trip) return;
   trip.photos.splice(idx, 1);
-  trip.cover_photo = trip.photos[0] || null;
   currentTripCache = structuredCloneSafe(trip);
   const collage = document.getElementById('photo-collage');
   collage.innerHTML = '';
@@ -1056,29 +1028,6 @@ async function copyShareLink() {
   }
   showToast('🔗 Link copied to clipboard!');
 }
-
-function renderRelatedTrips(currentTrip) {
-  const strip = document.getElementById('related-strip');
-  const grid = document.getElementById('related-grid');
-  const others = trips.filter(t => t.id !== currentTrip.id).slice(0, 3);
-  if (!others.length) { strip.style.display = 'none'; grid.innerHTML = ''; return; }
-  strip.style.display = 'block';
-  grid.innerHTML = '';
-  others.forEach(trip => {
-    const card = document.createElement('div');
-    card.className = 'related-card';
-    const thumb = trip.cover_photo || ((trip.photos || [])[0] || '');
-    card.innerHTML = `
-      <div class="related-thumb">${thumb ? `<img src="${thumb}" alt="${escapeHtml(trip.title || 'Trip cover')}">` : '✈️'}</div>
-      <div class="related-body">
-        <h4>${escapeHtml(trip.title || 'Untitled trip')}</h4>
-        <p>${escapeHtml(trip.location || 'Somewhere lovely')}</p>
-      </div>`;
-    card.onclick = () => { history.pushState({}, '', tripShareUrl(trip)); routeFromLocation(); };
-    grid.appendChild(card);
-  });
-}
-
 function buildReadonlyPage(targetEl, trip) {
   targetEl.innerHTML = '';
   const tape = document.createElement('div'); tape.className = 'tape-top'; targetEl.appendChild(tape);
@@ -1124,25 +1073,7 @@ function showShareView(trip) {
   document.getElementById('view-share').style.display = 'block';
   document.getElementById('share-date').textContent = trip.trip_date ? formatDate(trip.trip_date) : '';
   document.getElementById('share-location-label').textContent = trip.location ? `📍 ${trip.location}` : '';
-  document.getElementById('share-hero-title').textContent = trip.title || 'Untitled trip';
-  document.getElementById('share-story-preview').textContent = trip.story ? `${trip.story.slice(0, 180)}${trip.story.length > 180 ? '…' : ''}` : 'A scrapbook page full of photos, places, and little memories.';
-  const chips = document.getElementById('share-chips');
-  chips.innerHTML = '';
-  [
-    `${(trip.photos || []).length} photo${(trip.photos || []).length === 1 ? '' : 's'}`,
-    `${(trip.stickers || []).length} sticker${(trip.stickers || []).length === 1 ? '' : 's'}`,
-    trip.location || 'Shared publicly'
-  ].filter(Boolean).forEach(label => {
-    const chip = document.createElement('span');
-    chip.className = 'share-chip';
-    chip.textContent = label;
-    chips.appendChild(chip);
-  });
-  const hero = document.getElementById('share-hero-media');
-  const cover = trip.cover_photo || ((trip.photos || [])[0] || '');
-  hero.innerHTML = cover ? `<img src="${cover}" alt="${escapeHtml(trip.title || 'Trip cover')}">` : `<div class="share-hero-placeholder">🌍</div>`;
   buildReadonlyPage(document.getElementById('share-scrapbook-page'), trip);
-  renderRelatedTrips(trip);
 }
 function showMainApp() {
   document.getElementById('main-header').style.display = '';
