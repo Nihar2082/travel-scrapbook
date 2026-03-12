@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Scrapbook ✈️</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --cream: #faf6f0;
+  --paper: #f5ede0;
+  --aged: #e8d8c4;
+  --ink: #2c1810;
+  --rust: #c0541a;
+  --sage: #6b8c6b;
+  --gold: #c9953a;
+  --shadow: rgba(44,24,16,0.15);
+  --tape: rgba(201,149,58,0.35);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--cream);
+  font-family: 'Lato', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(201,149,58,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(107,140,107,0.06) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+}
+header {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 18px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: 'Caveat', cursive;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.logo-stamp {
+  background: var(--rust);
+  color: white;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  border: 2px solid rgba(255,255,255,0.3);
+}
+.nav-tabs {
+  display: flex;
+  background: var(--paper);
+  border-bottom: 2px solid var(--aged);
+  padding: 0 40px;
+}
+.nav-tab {
+  padding: 14px 28px;
+  cursor: pointer;
+  font-family: 'Lato', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #9b7b5e;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+.nav-tab.active { color: var(--rust); border-bottom-color: var(--rust); font-weight: 700; }
+.nav-tab:hover:not(.active) { color: var(--ink); }
+.btn {
+  padding: 9px 22px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Lato', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--rust); color: white; }
+.btn-primary:hover { background: #a84515; transform: translateY(-1px); }
+.btn-outline { background: transparent; color: var(--cream); border: 1px solid rgba(255,255,255,0.35); }
+.btn-outline:hover { background: rgba(255,255,255,0.1); }
+.btn-ghost { background: var(--aged); color: var(--ink); border: 1px solid rgba(44,24,16,0.2); }
+.btn-ghost:hover { background: #ddc9af; }
+.btn-danger { background: #c0392b; color: white; border: none; }
+.btn-danger:hover { background: #a93226; }
+.btn-sm { padding: 6px 14px; font-size: 0.82rem; }
+.btn-lg { padding: 12px 30px; font-size: 1rem; }
+.view { display: none; padding: 40px; max-width: 1200px; margin: 0 auto; }
+.view.active { display: block; }
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.timeline-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  font-style: italic;
+  color: var(--ink);
+}
+.timeline-subtitle {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: #9b7b5e;
+  margin-top: 4px;
+}
+.timeline-line {
+  position: relative;
+  padding-left: 60px;
+}
+.timeline-line::before {
+  content: '';
+  position: absolute;
+  left: 20px; top: 0; bottom: 0;
+  width: 2px;
+  background: repeating-linear-gradient(to bottom, var(--aged) 0, var(--aged) 6px, transparent 6px, transparent 12px);
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 32px;
+  animation: fadeSlideIn 0.4s ease both;
+}
+@keyframes fadeSlideIn {
+  from { opacity:0; transform: translateX(-20px); }
+  to   { opacity:1; transform: translateX(0); }
+}
+.timeline-dot {
+  position: absolute;
+  left: -48px; top: 20px;
+  width: 16px; height: 16px;
+  background: var(--rust);
+  border-radius: 50%;
+  border: 3px solid var(--cream);
+  box-shadow: 0 0 0 2px var(--rust);
+}
+.trip-card {
+  background: white;
+  border-radius: 2px;
+  box-shadow: 3px 4px 18px var(--shadow), -1px -1px 0 var(--aged);
+  padding: 24px 28px;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+  overflow: visible;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+}
+.trip-card::before {
+  content: '';
+  position: absolute;
+  top: -6px; left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  width: 80px; height: 24px;
+  background: var(--tape);
+}
+.trip-card:hover { transform: translateY(-3px) rotate(0.3deg); box-shadow: 5px 8px 28px var(--shadow); }
+.trip-card-thumb {
+  width: 90px; height: 70px;
+  object-fit: cover;
+  border: 3px solid white;
+  box-shadow: 2px 2px 8px var(--shadow);
+  transform: rotate(2deg);
+  align-self: center;
+}
+.trip-card-thumb-placeholder {
+  width: 90px; height: 70px;
+  background: var(--aged);
+  border: 3px solid white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; color: #9b7b5e;
+  transform: rotate(2deg);
+  align-self: center;
+}
+.trip-card-year { font-family:'Caveat',cursive; font-size:0.85rem; color:var(--rust); text-transform:uppercase; letter-spacing:1px; }
+.trip-card-title { font-family:'Playfair Display',serif; font-size:1.4rem; margin:4px 0 6px; }
+.trip-card-meta { font-size:0.85rem; color:#9b7b5e; display:flex; gap:14px; flex-wrap:wrap; margin-bottom:8px; }
+.trip-card-excerpt { font-family:'Caveat',cursive; font-size:0.95rem; color:#7a5c44; line-height:1.5; margin-bottom:10px; }
+.trip-card-actions { display:flex; gap:8px; margin-top:8px; }
+.empty-state { text-align:center; padding:80px 20px; color:#9b7b5e; }
+.empty-icon { font-size:5rem; margin-bottom:20px; opacity:0.5; }
+.empty-state h3 { font-family:'Playfair Display',serif; font-size:1.6rem; margin-bottom:10px; color:var(--ink); }
+.page-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 40px;
+  background: var(--paper);
+  border-bottom: 2px solid var(--aged);
+  position: sticky;
+  top: 122px;
+  z-index: 90;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.toolbar-left, .toolbar-right { display:flex; align-items:center; gap:10px; }
+.save-status { font-family:'Caveat',cursive; font-size:1rem; color:#6b8c6b; }
+.save-status.unsaved { color: var(--gold); }
+.scrapbook-page {
+  background: white;
+  max-width: 860px;
+  margin: 40px auto;
+  padding: 50px 60px;
+  box-shadow: 5px 5px 0 var(--aged), 10px 10px 0 #e0cdb8, 0 20px 60px rgba(0,0,0,0.15);
+  position: relative;
+  min-height: 1100px;
+  background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(107,140,107,0.08) 27px, rgba(107,140,107,0.08) 28px);
+}
+.page-stamp {
+  position: absolute;
+  top: 30px; right: 50px;
+  width: 90px; height: 90px;
+  border: 3px solid var(--rust);
+  border-radius: 50%;
+  display: flex; flex-direction:column; align-items:center; justify-content:center;
+  opacity: 0.6;
+  transform: rotate(12deg);
+  font-family: 'Caveat', cursive;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--rust);
+  text-align: center;
+  padding: 6px;
+  line-height: 1.4;
+}
+.stamp-icon { font-size:1.6rem; margin-bottom:2px; }
+.tape-top {
+  position: absolute;
+  top: -10px; left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  width: 80px; height: 24px;
+  background: var(--tape);
+  border-radius: 2px;
+}
+.page-content { position:relative; z-index:1; }
+.field-label { font-family:'Caveat',cursive; font-size:0.9rem; color:#9b7b5e; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px; display:block; }
+.field-title {
+  width: calc(100% - 110px);
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  font-style: italic;
+  border: none;
+  border-bottom: 2px solid var(--aged);
+  background: transparent;
+  color: var(--ink);
+  padding: 4px 0;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.field-title:focus { border-bottom-color: var(--rust); }
+.field-title::placeholder { color:#c5a88a; font-style:italic; }
+.field-group { margin-bottom:24px; }
+.page-meta-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:16px; margin-bottom:24px; }
+.field-inline { display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--aged); padding-bottom:8px; }
+.field-inline-icon { font-size:1.1rem; }
+.field-text { flex:1; border:none; background:transparent; font-family:'Caveat',cursive; font-size:1.15rem; color:var(--ink); outline:none; min-width:0; }
+.field-text::placeholder { color:#bfa990; }
+.story-area { width:100%; min-height:160px; border:none; background:transparent; font-family:'Caveat',cursive; font-size:1.25rem; line-height:1.8; color:var(--ink); resize:vertical; outline:none; }
+.story-area::placeholder { color:#bfa990; }
+.collage-section { margin-top:32px; }
+.collage-section-title {
+  font-family:'Caveat',cursive; font-size:1.1rem; color:#9b7b5e;
+  text-transform:uppercase; letter-spacing:1.5px; margin-bottom:16px;
+  display:flex; align-items:center; gap:10px;
+}
+.collage-section-title::after { content:''; flex:1; height:1px; background:var(--aged); }
+.drop-zone {
+  border: 2px dashed var(--aged);
+  border-radius: 4px;
+  padding: 32px;
+  text-align: center;
+  color: #9b7b5e;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+}
+.drop-zone:hover, .drop-zone.drag-over { border-color:var(--rust); background:rgba(192,84,26,0.04); color:var(--rust); }
+.drop-zone-icon { font-size:2rem; display:block; margin-bottom:8px; }
+.photo-collage { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:8px; margin-top:12px; }
+.photo-item { position:relative; transition:transform 0.2s; }
+.photo-item:hover { transform:rotate(0deg) scale(1.05) !important; z-index:5; }
+.rot0 { transform:rotate(-1.5deg); }
+.rot1 { transform:rotate(1.2deg); }
+.rot2 { transform:rotate(-0.5deg) translateY(4px); }
+.rot3 { transform:rotate(2deg); }
+.rot4 { transform:rotate(-1.8deg) translateY(-2px); }
+.polaroid { background:white; padding:8px 8px 28px; box-shadow:2px 3px 12px var(--shadow), 0 0 0 1px rgba(0,0,0,0.06); }
+.polaroid img { width:100%; aspect-ratio:1; object-fit:cover; display:block; }
+.polaroid-caption { margin-top:4px; text-align:center; font-family:'Caveat',cursive; font-size:0.85rem; color:#9b7b5e; }
+.photo-remove { position:absolute; top:-8px; right:-8px; width:22px; height:22px; background:var(--rust); color:white; border:none; border-radius:50%; cursor:pointer; font-size:0.75rem; display:none; align-items:center; justify-content:center; }
+.photo-item:hover .photo-remove { display:flex; }
+.sticker-section { margin-top:28px; }
+.sticker-tray { display:flex; flex-wrap:wrap; gap:8px; padding:14px; background:var(--paper); border-radius:6px; border:1px solid var(--aged); }
+.sticker-btn { width:38px; height:38px; border:none; background:white; border-radius:8px; cursor:pointer; font-size:1.3rem; display:flex; align-items:center; justify-content:center; box-shadow:1px 1px 4px var(--shadow); transition:transform 0.15s; }
+.sticker-btn:hover { transform:scale(1.2); }
+.sticker-canvas { display:flex; flex-wrap:wrap; gap:4px; min-height:60px; margin-top:12px; border-bottom:1px solid var(--aged); padding-bottom:12px; }
+.placed-sticker { display:inline-flex; align-items:center; justify-content:center; font-size:1.8rem; cursor:default; padding:2px; position:relative; transition:transform 0.15s; }
+.placed-sticker:hover { transform:scale(1.2); }
+.remove-sticker { position:absolute; top:-8px; right:-8px; width:18px; height:18px; background:var(--rust); color:white; border:none; border-radius:50%; cursor:pointer; font-size:0.65rem; display:none; align-items:center; justify-content:center; }
+.placed-sticker:hover .remove-sticker { display:flex; }
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(44,24,16,0.5); z-index:200; align-items:center; justify-content:center; backdrop-filter:blur(3px); padding:20px; }
+.modal-overlay.active { display:flex; }
+.modal { background:white; border-radius:4px; padding:40px; width:480px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.3); position:relative; animation:scaleIn 0.25s ease; }
+@keyframes scaleIn { from{opacity:0;transform:scale(0.96) translateY(12px);} to{opacity:1;transform:scale(1) translateY(0);} }
+.modal-close { position:absolute; top:16px; right:20px; background:none; border:none; font-size:1.6rem; color:#9b7b5e; cursor:pointer; }
+.modal-title { font-family:'Playfair Display',serif; font-size:1.7rem; margin-bottom:24px; color:var(--ink); }
+.modal label { display:block; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; color:#9b7b5e; margin-bottom:5px; }
+.modal input { width:100%; padding:10px 14px; border:1px solid var(--aged); border-radius:3px; font-family:'Lato',sans-serif; font-size:0.95rem; background:var(--cream); color:var(--ink); outline:none; transition:border-color 0.2s; margin-bottom:14px; }
+.modal input:focus { border-color:var(--rust); }
+.modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:6px; }
+.share-url-box { width:100%; padding:10px 14px; border:1px solid var(--aged); border-radius:3px; font-family:'Lato',sans-serif; font-size:0.82rem; background:var(--cream); color:#7a5c44; margin-bottom:16px; word-break:break-all; cursor:text; }
+.toast-container { position:fixed; bottom:30px; right:30px; display:flex; flex-direction:column; gap:10px; z-index:999; }
+.toast { background:var(--ink); color:var(--cream); padding:12px 22px; border-radius:4px; font-family:'Caveat',cursive; font-size:1.1rem; box-shadow:0 6px 20px rgba(0,0,0,0.25); animation:fadeUp 0.3s ease both; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+.about-hero { text-align:center; padding:40px 0 64px; }
+.about-title { font-family:'Playfair Display',serif; font-size:3rem; line-height:1.15; color:var(--ink); margin-bottom:20px; }
+.about-title em { color:var(--rust); font-style:italic; }
+.about-sub { font-size:1.1rem; color:#7a5c44; max-width:540px; margin:0 auto 32px; line-height:1.65; }
+.feature-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-bottom:72px; }
+.feature-card { background:white; border:1px solid var(--aged); border-radius:4px; padding:28px 24px; box-shadow:3px 4px 14px var(--shadow); transition:transform 0.2s, box-shadow 0.2s; }
+.feature-card:hover { transform:translateY(-4px); box-shadow:5px 8px 24px rgba(44,24,16,0.2); }
+.feature-icon { display:block; font-size:2.2rem; margin-bottom:14px; }
+.feature-card h3 { font-family:'Playfair Display',serif; font-size:1.1rem; margin-bottom:8px; color:var(--ink); }
+.feature-card p { font-size:0.92rem; color:#7a5c44; line-height:1.6; }
+.about-cta { text-align:center; background:var(--ink); color:var(--cream); padding:56px 40px; border-radius:4px; }
+.about-cta h2 { font-family:'Playfair Display',serif; font-size:2.2rem; font-style:italic; margin-bottom:12px; }
+.about-cta p { font-size:1.05rem; opacity:0.7; margin-bottom:28px; }
+.cta-buttons { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+.share-banner { background:var(--ink); color:var(--cream); padding:14px 40px; display:flex; align-items:center; justify-content:space-between; gap:16px; font-family:'Caveat',cursive; font-size:1.1rem; flex-wrap:wrap; }
+.share-meta { max-width:980px; margin:0 auto; padding:24px 40px 0; display:flex; gap:20px; flex-wrap:wrap; }
+.share-date { font-family:'Caveat',cursive; font-size:0.9rem; color:var(--rust); text-transform:uppercase; letter-spacing:1px; }
+.share-location { font-family:'Caveat',cursive; font-size:0.95rem; color:#7a5c44; }
+.share-footer { background:var(--paper); border-top:2px solid var(--aged); padding:48px 40px; margin-top:40px; }
+.share-footer-inner { max-width:860px; margin:0 auto; display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+.share-footer-inner h3 { font-family:'Playfair Display',serif; font-size:1.4rem; margin-bottom:4px; }
+.share-footer-inner p { color:#7a5c44; font-size:0.95rem; }
+.scrapbook-readonly { pointer-events:none; }
+.scrapbook-readonly .drop-zone,
+.scrapbook-readonly .sticker-section { display:none; }
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(250,246,240,0.75);
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+.loading-overlay.active { display: flex; }
+.loading-card {
+  background: white;
+  border: 1px solid var(--aged);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  padding: 20px 28px;
+  border-radius: 6px;
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+}
+.small-note { color:#9b7b5e; font-size:0.82rem; line-height:1.5; }
+.hidden { display:none !important; }
+@media (max-width:700px) {
+  header { padding:14px 18px; }
+  .nav-tabs { padding:0 16px; }
+  .nav-tab { padding:12px 14px; font-size:0.78rem; }
+  .view { padding:22px 16px; }
+  .page-meta-row { grid-template-columns:1fr; }
+  .field-title { font-size:1.8rem; width:100%; }
+  .page-stamp { display:none; }
+  .scrapbook-page { padding:36px 22px 40px; margin:20px auto; }
+  .page-toolbar { padding:12px 16px; top:108px; }
+  .feature-grid { grid-template-columns:1fr 1fr; }
+}
+@media (max-width:480px) {
+  .feature-grid { grid-template-columns:1fr; }
+  .trip-card { grid-template-columns:1fr; }
+  .trip-card-thumb, .trip-card-thumb-placeholder { display:none; }
+}
+</style>
+</head>
+<body>
+<div id="main-header">
+  <header>
+    <div class="logo" onclick="navigate('timeline')">
+      <div class="logo-stamp">✈</div>
+      Travel Scrapbook
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;">
+      <button class="btn btn-outline" onclick="openNewTripModal()">+ New Trip</button>
+    </div>
+  </header>
+  <nav class="nav-tabs">
+    <div class="nav-tab active" id="tab-timeline" onclick="navigate('timeline')">📅 My Trips</div>
+    <div class="nav-tab" id="tab-page" onclick="navigate('page')" style="display:none">📖 Current Page</div>
+    <div class="nav-tab" id="tab-about" onclick="navigate('about')">✈️ About</div>
+  </nav>
+</div>
+<div class="view active" id="view-timeline">
+  <div class="timeline-header">
+    <div>
+      <h1 class="timeline-title">My Adventures</h1>
+      <p class="timeline-subtitle" id="trip-count-label">Your visual travel diary awaits.</p>
+    </div>
+    <button class="btn btn-primary" onclick="openNewTripModal()">✈ Start a New Trip</button>
+  </div>
+  <div class="timeline-stats" id="timeline-stats">
+    <div class="stat-card"><div class="stat-label">Trips</div><div class="stat-value" id="stat-trips">0</div><div class="stat-note">Scrapbook pages created</div></div>
+    <div class="stat-card"><div class="stat-label">Photos</div><div class="stat-value" id="stat-photos">0</div><div class="stat-note">Memories pinned</div></div>
+    <div class="stat-card"><div class="stat-label">Places</div><div class="stat-value" id="stat-places">0</div><div class="stat-note">Destinations visited</div></div>
+  </div>
+  <div class="timeline-line" id="timeline-container">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">🗺️</div>
+      <h3>No trips yet</h3>
+      <p>Start your first scrapbook page and capture a memory.</p>
+      <br>
+      <button class="btn btn-primary btn-lg" onclick="openNewTripModal()">Create First Trip</button>
+    </div>
+  </div>
+</div>
+<div class="view" id="view-page">
+  <div class="page-toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('timeline')">← Back</button>
+      <span class="save-status" id="save-status">All changes saved ✓</span>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn btn-ghost btn-sm" onclick="openShareModal()">🔗 Share</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportPDF()">⬇ Export PDF</button>
+      <button class="btn btn-primary btn-sm" onclick="savePage()">💾 Save</button>
+    </div>
+  </div>
+  <div class="scrapbook-page" id="scrapbook-page">
+    <div class="tape-top"></div>
+    <div class="page-stamp">
+      <span class="stamp-icon">📮</span>
+      <span id="stamp-location">Your Trip</span>
+    </div>
+    <div class="page-content">
+      <div class="field-group">
+        <span class="field-label">Trip Title</span>
+        <input class="field-title" id="trip-title" placeholder="My Amazing Adventure..." oninput="onFieldChange()">
+      </div>
+      <div class="page-meta-row">
+        <div class="field-inline">
+          <span class="field-inline-icon">📍</span>
+          <input class="field-text" id="trip-location" placeholder="Destination..." oninput="onFieldChange()">
+        </div>
+        <div class="field-inline">
+          <span class="field-inline-icon">📅</span>
+          <input type="date" class="field-text" id="trip-date" oninput="onFieldChange()">
+        </div>
+      </div>
+      <div class="field-group">
+        <span class="field-label">Travel Story</span>
+        <textarea class="story-area" id="trip-story" placeholder="Write about your adventure... What did you see? How did it feel? What will you always remember?" oninput="onFieldChange()"></textarea>
+      </div>
+      <div class="collage-section">
+        <div class="collage-section-title">Photo Memories</div>
+        <div class="drop-zone" id="drop-zone"
+          ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)"
+          onclick="document.getElementById('photo-input').click()">
+          <span class="drop-zone-icon">📸</span>
+          Drag & drop photos here, or click to browse
+        </div>
+        <input type="file" id="photo-input" multiple accept="image/*" style="display:none" onchange="handleFileInput(event)">
+        <div class="photo-collage" id="photo-collage"></div>
+      </div>
+      <div class="sticker-section">
+        <div class="collage-section-title">Stickers & Memories</div>
+        <div class="sticker-tray" id="sticker-tray"></div>
+      </div>
+      <div class="sticker-canvas" id="sticker-canvas"></div>
+    </div>
+  </div>
+</div>
+<div class="view" id="view-about">
+  <div class="about-hero">
+    <h1 class="about-title">Every trip deserves<br><em>a beautiful story.</em></h1>
+    <p class="about-sub">Travel Scrapbook turns your adventures into visual diary pages — drag in photos, write your memories, add stickers, and share with anyone.</p>
+    <button class="btn btn-primary btn-lg" onclick="openNewTripModal()">✈ Start Your First Scrapbook</button>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card"><span class="feature-icon">📸</span><h3>Drag & Drop Photos</h3><p>Drop photos onto the page. They appear as tilted polaroids in a beautiful collage.</p></div>
+    <div class="feature-card"><span class="feature-icon">✍️</span><h3>Tell Your Story</h3><p>Write about your adventure in handwritten-style text on a beautiful paper canvas.</p></div>
+    <div class="feature-card"><span class="feature-icon">✨</span><h3>Stickers & Emojis</h3><p>Decorate with 30 travel-themed stickers — maps, food, landmarks, and more.</p></div>
+    <div class="feature-card"><span class="feature-icon">🔗</span><h3>Share Publicly</h3><p>One-click share link anyone can open in their browser — no login needed.</p></div>
+    <div class="feature-card"><span class="feature-icon">⬇️</span><h3>Export as PDF</h3><p>Download any trip page as a print-ready PDF to keep or display forever.</p></div>
+    <div class="feature-card"><span class="feature-icon">📅</span><h3>Trip Timeline</h3><p>All your trips in a beautiful chronological timeline on your home page.</p></div>
+  </div>
+  <div class="about-cta">
+    <h2>Ready to start?</h2>
+    <p>Your memories deserve more than a camera roll.</p>
+    <div class="cta-buttons">
+      <button class="btn btn-primary btn-lg" onclick="openNewTripModal()">Create a Trip Page</button>
+      <button class="btn btn-ghost btn-lg" onclick="navigate('timeline')" style="color:var(--cream);border-color:rgba(255,255,255,0.3);background:transparent;">View My Trips →</button>
+    </div>
+  </div>
+</div>
+<div style="display:none" id="view-share">
+  <div class="share-banner">
+    <span>✈️ You're viewing a shared travel scrapbook page</span>
+    <button class="btn btn-ghost btn-sm" onclick="showMainApp()">Create Your Own →</button>
+  </div>
+  <div class="share-hero">
+    <div class="share-hero-card">
+      <div class="share-hero-media" id="share-hero-media"></div>
+      <div class="share-hero-copy">
+        <div class="share-kicker">Shared trip story</div>
+        <div class="share-title-large" id="share-hero-title"></div>
+        <div class="share-meta">
+          <span class="share-date" id="share-date"></span>
+          <span class="share-location" id="share-location-label"></span>
+        </div>
+        <p class="share-story-preview" id="share-story-preview"></p>
+        <div class="share-chips" id="share-chips"></div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:32px 40px 0; max-width:980px; margin:0 auto;">
+    <div class="scrapbook-page scrapbook-readonly" id="share-scrapbook-page"></div>
+  </div>
+  <div class="related-strip" id="related-strip" style="display:none;">
+    <h3>More adventures from this scrapbook</h3>
+    <div class="related-grid" id="related-grid"></div>
+  </div>
+  <div class="share-footer">
+    <div class="share-footer-inner">
+      <span style="font-size:2.5rem">✈️</span>
+      <div>
+        <h3>Create your own travel scrapbook</h3>
+        <p>Document your adventures with photos, stories, and stickers — free.</p>
+      </div>
+      <button class="btn btn-primary btn-lg" onclick="showMainApp()" style="margin-left:auto">Get Started →</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="new-trip-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeNewTripModal()">×</button>
+    <h2 class="modal-title">New Trip Page ✈️</h2>
+    <label>Trip Title *</label>
+    <input id="modal-title" placeholder="Summer in Portugal...">
+    <label>Destination</label>
+    <input id="modal-location" placeholder="Lisbon, Portugal">
+    <label>Date</label>
+    <input type="date" id="modal-date">
+    <div class="small-note" style="margin-bottom:12px;">New trips are saved to Supabase when you click Create Page.</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeNewTripModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createTrip()">Create Page →</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="share-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('share-modal').classList.remove('active')">×</button>
+    <h2 class="modal-title">Share This Trip 🌍</h2>
+    <p style="margin-bottom:16px;color:#7a5c44;font-size:0.95rem;line-height:1.5">
+      Anyone with this link can view your scrapbook page — no login required.
+    </p>
+    <input class="share-url-box" id="share-url-input" readonly onclick="this.select()">
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="copyShareLink()">📋 Copy Link</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('share-modal').classList.remove('active')">Done</button>
+    </div>
+  </div>
+</div>
+<div class="toast-container" id="toast-container"></div>
+<div class="loading-overlay" id="loading-overlay"><div class="loading-card" id="loading-text">Loading…</div></div>
+<script>
+const SUPABASE_URL = 'https://vgqyatahdzisavrqhbap.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_4Z1nFeqYqR6jxLR6Ejq5Bg_Ptl4V65y';
+const API_HEADERS = {
+  apikey: SUPABASE_PUBLISHABLE_KEY,
+  Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+};
+let trips = [];
+let currentTripId = null;
+let saveTimer = null;
+let currentTripCache = null;
+const STICKERS = ['✈️','🌍','🗺️','📸','🌴','🏔️','🌊','🍜','🍷','🎭','🏛️','🎡','🌸','⭐','💫','🎉','❤️','🌺','🦋','🐚','🌅','🏖️','🎒','🧭','🌿','🥂','🎵','📮','🔭','🦁'];
+
+function showLoading(text='Loading…') {
+  document.getElementById('loading-text').textContent = text;
+  document.getElementById('loading-overlay').classList.add('active');
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').classList.remove('active');
+}
+function slugify(text) {
+  return String(text || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'my-trip';
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+async function apiFetch(path, options = {}) {
+  const response = await fetch(`${SUPABASE_URL}${path}`, {
+    ...options,
+    headers: {
+      ...API_HEADERS,
+      ...(options.headers || {})
+    }
+  });
+  if (!response.ok) {
+    let message = `Request failed (${response.status})`;
+    try {
+      const err = await response.json();
+      message = err.message || err.error_description || err.error || JSON.stringify(err);
+    } catch {}
+    throw new Error(message);
+  }
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) return response.json();
+  return response.text();
+}
+function formatDate(d) {
+  if (!d) return '';
+  try { return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }); }
+  catch { return d; }
+}
+function showToast(msg, duration=2800) {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), duration);
+}
+function tripShareUrl(trip) {
+  return `${window.location.origin}/trip/${encodeURIComponent(trip.slug)}`;
+}
+function upsertTripInList(trip) {
+  const idx = trips.findIndex(t => t.id === trip.id);
+  if (idx >= 0) trips[idx] = trip;
+  else trips.unshift(trip);
+}
+async function fetchPublicTrips() {
+  const data = await apiFetch('/rest/v1/trips?select=*&is_public=eq.true&order=trip_date.desc.nullslast,created_at.desc', {
+    headers: { Accept: 'application/json' }
+  });
+  trips = Array.isArray(data) ? data : [];
+}
+async function fetchTripBySlug(slug) {
+  const data = await apiFetch(`/rest/v1/trips?select=*&slug=eq.${encodeURIComponent(slug)}&is_public=eq.true&limit=1`, {
+    headers: { Accept: 'application/json' }
+  });
+  return data && data[0] ? data[0] : null;
+}
+async function fetchTripById(id) {
+  const data = await apiFetch(`/rest/v1/trips?select=*&id=eq.${encodeURIComponent(id)}&limit=1`, {
+    headers: { Accept: 'application/json' }
+  });
+  return data && data[0] ? data[0] : null;
+}
+async function createTripRemote(payload) {
+  const created = await apiFetch('/rest/v1/trips', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify([payload])
+  });
+  return created[0];
+}
+async function updateTripRemote(id, payload) {
+  const updated = await apiFetch(`/rest/v1/trips?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify(payload)
+  });
+  return updated[0];
+}
+async function deleteTripRemote(id) {
+  await apiFetch(`/rest/v1/trips?id=eq.${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { Prefer: 'return=minimal' }
+  });
+}
+async function uploadPhoto(file) {
+  const ext = (file.name.split('.').pop() || 'jpg').replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const objectPath = `public/${fileName}`;
+  await apiFetch(`/storage/v1/object/trip-photos/${objectPath}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-upsert': 'false'
+    },
+    body: file
+  });
+  return `${SUPABASE_URL}/storage/v1/object/public/trip-photos/${objectPath}`;
+}
+function renderTimeline() {
+  const container = document.getElementById('timeline-container');
+  const empty = document.getElementById('empty-state');
+  const label = document.getElementById('trip-count-label');
+  container.querySelectorAll('.timeline-item').forEach(e => e.remove());
+  label.textContent = trips.length === 0 ? 'Your visual travel diary awaits.' : `${trips.length} trip${trips.length !== 1 ? 's' : ''} documented`;
+  document.getElementById('stat-trips').textContent = String(trips.length);
+  document.getElementById('stat-photos').textContent = String(trips.reduce((sum, trip) => sum + ((trip.photos || []).length), 0));
+  document.getElementById('stat-places').textContent = String(new Set(trips.map(trip => (trip.location || '').trim()).filter(Boolean)).size);
+  if (trips.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  const sorted = [...trips].sort((a,b) => (b.trip_date || b.created_at || '').localeCompare(a.trip_date || a.created_at || ''));
+  sorted.forEach((trip, i) => {
+    const item = document.createElement('div');
+    item.className = 'timeline-item';
+    item.style.animationDelay = `${i * 0.06}s`;
+    const thumbSrc = trip.cover_photo || ((trip.photos && trip.photos.length > 0) ? trip.photos[0] : '');
+    const thumb = thumbSrc
+      ? `<img class="trip-card-thumb" src="${thumbSrc}" alt="cover">`
+      : `<div class="trip-card-thumb-placeholder">✈️</div>`;
+    const excerpt = trip.story ? `<p class="trip-card-excerpt">${escapeHtml(trip.story.slice(0,110))}${trip.story.length>110?'…':''}</p>` : '';
+    item.innerHTML = `
+      <div class="timeline-dot"></div>
+      <div class="trip-card" onclick="openTrip('${trip.id}')">
+        <div>
+          <div class="trip-card-year">${trip.trip_date ? formatDate(trip.trip_date) : 'Date unknown'}</div>
+          <div class="trip-card-title">${escapeHtml(trip.title || 'Untitled Trip')}</div>
+          <div class="trip-card-meta">
+            ${trip.location ? `<span>📍 ${escapeHtml(trip.location)}</span>` : ''}
+            <span>📸 ${(trip.photos || []).length} photos</span>
+            ${(trip.stickers || []).length > 0 ? `<span>✨ ${trip.stickers.length} stickers</span>` : ''}
+          </div>
+          ${excerpt}
+          <div class="trip-card-actions" onclick="event.stopPropagation()">
+            <button class="btn btn-ghost btn-sm" onclick="openTrip('${trip.id}')">Open →</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteTrip('${trip.id}')">🗑</button>
+          </div>
+        </div>
+        ${thumb}
+      </div>`;
+    container.appendChild(item);
+  });
+}
+function escapeHtml(text='') {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function navigate(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-share').style.display = 'none';
+  document.getElementById('main-header').style.display = '';
+  if (view === 'timeline') {
+    document.getElementById('view-timeline').classList.add('active');
+    document.getElementById('tab-timeline').classList.add('active');
+    history.replaceState({}, '', '/');
+    renderTimeline();
+  } else if (view === 'page') {
+    document.getElementById('view-page').classList.add('active');
+    document.getElementById('tab-page').classList.add('active');
+    history.replaceState({}, '', '/page');
+  } else if (view === 'about') {
+    document.getElementById('view-about').classList.add('active');
+    document.getElementById('tab-about').classList.add('active');
+    history.replaceState({}, '', '/about');
+  }
+}
+function openNewTripModal() {
+  document.getElementById('modal-title').value = '';
+  document.getElementById('modal-location').value = '';
+  document.getElementById('modal-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('new-trip-modal').classList.add('active');
+  setTimeout(() => document.getElementById('modal-title').focus(), 50);
+}
+function closeNewTripModal() {
+  document.getElementById('new-trip-modal').classList.remove('active');
+}
+async function createTrip() {
+  const title = document.getElementById('modal-title').value.trim();
+  if (!title) { document.getElementById('modal-title').focus(); return; }
+  const slugBase = slugify(title || document.getElementById('modal-location').value.trim() || 'my-trip');
+  const payload = {
+    slug: `${slugBase}-${Date.now().toString().slice(-6)}`,
+    title,
+    location: document.getElementById('modal-location').value.trim(),
+    trip_date: document.getElementById('modal-date').value || null,
+    story: '',
+    cover_photo: null,
+    photos: [],
+    stickers: [],
+    is_public: true
+  };
+  showLoading('Creating your scrapbook page…');
+  try {
+    const trip = await createTripRemote(payload);
+    upsertTripInList(trip);
+    currentTripId = trip.id;
+    currentTripCache = structuredCloneSafe(trip);
+    closeNewTripModal();
+    openTrip(trip.id, false);
+    showToast('✈️ New trip page created!');
+  } catch (err) {
+    console.error(err);
+    showToast(`⚠️ ${err.message}`);
+  } finally {
+    hideLoading();
+  }
+}
+function structuredCloneSafe(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+async function openTrip(id, refetch = true) {
+  showLoading('Opening trip…');
+  try {
+    currentTripId = id;
+    let trip = trips.find(t => t.id === id) || null;
+    if (refetch || !trip) trip = await fetchTripById(id);
+    if (!trip) throw new Error('Trip not found');
+    upsertTripInList(trip);
+    currentTripCache = structuredCloneSafe(trip);
+    document.getElementById('trip-title').value = trip.title || '';
+    document.getElementById('trip-location').value = trip.location || '';
+    document.getElementById('trip-date').value = trip.trip_date || '';
+    document.getElementById('trip-story').value = trip.story || '';
+    document.getElementById('stamp-location').textContent = trip.location || 'Your Trip';
+    const collage = document.getElementById('photo-collage');
+    collage.innerHTML = '';
+    (trip.photos || []).forEach((src, i) => addPhotoToCollage(src, i));
+    const canvas = document.getElementById('sticker-canvas');
+    canvas.innerHTML = '';
+    (trip.stickers || []).forEach(s => placeStickerEl(s));
+    document.getElementById('tab-page').style.display = '';
+    document.getElementById('save-status').textContent = 'All changes saved ✓';
+    document.getElementById('save-status').classList.remove('unsaved');
+    navigate('page');
+  } catch (err) {
+    console.error(err);
+    showToast(`⚠️ ${err.message}`);
+  } finally {
+    hideLoading();
+  }
+}
+function currentEditorState() {
+  const existing = trips.find(t => t.id === currentTripId) || currentTripCache || {};
+  return {
+    ...existing,
+    title: document.getElementById('trip-title').value,
+    location: document.getElementById('trip-location').value,
+    trip_date: document.getElementById('trip-date').value || null,
+    story: document.getElementById('trip-story').value,
+    photos: existing.photos || [],
+    stickers: existing.stickers || [],
+    is_public: true,
+    updated_at: new Date().toISOString()
+  };
+}
+function onFieldChange() {
+  document.getElementById('stamp-location').textContent = document.getElementById('trip-location').value || 'Your Trip';
+  document.getElementById('save-status').textContent = 'Unsaved changes...';
+  document.getElementById('save-status').classList.add('unsaved');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => savePage(true), 1500);
+}
+async function savePage(silent = false) {
+  if (!currentTripId) return;
+  const payload = currentEditorState();
+  showLoading('Saving trip…');
+  try {
+    const updated = await updateTripRemote(currentTripId, {
+      title: payload.title,
+      location: payload.location,
+      trip_date: payload.trip_date,
+      story: payload.story,
+      photos: payload.photos,
+      stickers: payload.stickers,
+      cover_photo: payload.photos && payload.photos.length ? payload.photos[0] : null,
+      is_public: true,
+      updated_at: new Date().toISOString()
+    });
+    upsertTripInList(updated);
+    currentTripCache = structuredCloneSafe(updated);
+    document.getElementById('save-status').textContent = 'All changes saved ✓';
+    document.getElementById('save-status').classList.remove('unsaved');
+    if (!silent) showToast('💾 Trip saved!');
+  } catch (err) {
+    console.error(err);
+    showToast(`⚠️ ${err.message}`);
+  } finally {
+    hideLoading();
+  }
+}
+function handleDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+function handleDragLeave() { document.getElementById('drop-zone').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  processFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+}
+function handleFileInput(e) { processFiles(Array.from(e.target.files)); e.target.value = ''; }
+async function processFiles(files) {
+  if (!files.length || !currentTripId) return;
+  showLoading(`Uploading ${files.length} photo${files.length > 1 ? 's' : ''}…`);
+  try {
+    const trip = trips.find(t => t.id === currentTripId) || await fetchTripById(currentTripId);
+    if (!trip) throw new Error('Trip not found');
+    const urls = [];
+    for (const file of files) {
+      const url = await uploadPhoto(file);
+      urls.push(url);
+      await sleep(80);
+    }
+    trip.photos = [...(trip.photos || []), ...urls];
+    trip.cover_photo = trip.photos[0] || null;
+    upsertTripInList(trip);
+    currentTripCache = structuredCloneSafe(trip);
+    const collage = document.getElementById('photo-collage');
+    collage.innerHTML = '';
+    trip.photos.forEach((src, i) => addPhotoToCollage(src, i));
+    await savePage(true);
+    showToast(`📸 ${files.length} photo${files.length > 1 ? 's' : ''} added!`);
+  } catch (err) {
+    console.error(err);
+    showToast(`⚠️ ${err.message}`);
+  } finally {
+    hideLoading();
+  }
+}
+function addPhotoToCollage(src, idx) {
+  const collage = document.getElementById('photo-collage');
+  const item = document.createElement('div');
+  item.className = `photo-item rot${idx % 5}`;
+  item.innerHTML = `
+    <div class="polaroid">
+      <img src="${src}" alt="photo">
+      <div class="polaroid-caption">memory ${idx + 1}</div>
+    </div>
+    <button class="photo-remove" onclick="removePhoto(${idx},event)">×</button>`;
+  collage.appendChild(item);
+}
+async function removePhoto(idx, e) {
+  e.stopPropagation();
+  const trip = trips.find(t => t.id === currentTripId);
+  if (!trip) return;
+  trip.photos.splice(idx, 1);
+  trip.cover_photo = trip.photos[0] || null;
+  currentTripCache = structuredCloneSafe(trip);
+  const collage = document.getElementById('photo-collage');
+  collage.innerHTML = '';
+  trip.photos.forEach((src, i) => addPhotoToCollage(src, i));
+  await savePage(true);
+  showToast('Photo removed');
+}
+function buildStickerTray() {
+  const tray = document.getElementById('sticker-tray');
+  tray.innerHTML = '';
+  STICKERS.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'sticker-btn';
+    btn.textContent = emoji;
+    btn.onclick = () => addSticker(emoji);
+    tray.appendChild(btn);
+  });
+}
+async function addSticker(emoji) {
+  placeStickerEl(emoji);
+  const trip = trips.find(t => t.id === currentTripId);
+  if (trip) {
+    trip.stickers = trip.stickers || [];
+    trip.stickers.push(emoji);
+    currentTripCache = structuredCloneSafe(trip);
+    await savePage(true);
+  }
+}
+function placeStickerEl(emoji) {
+  const canvas = document.getElementById('sticker-canvas');
+  const span = document.createElement('span');
+  span.className = 'placed-sticker';
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'remove-sticker';
+  removeBtn.textContent = '×';
+  removeBtn.onclick = async () => {
+    span.remove();
+    const trip = trips.find(t => t.id === currentTripId);
+    if (trip && trip.stickers) {
+      const i = trip.stickers.indexOf(emoji);
+      if (i > -1) { trip.stickers.splice(i, 1); currentTripCache = structuredCloneSafe(trip); await savePage(true); }
+    }
+  };
+  span.textContent = emoji;
+  span.appendChild(removeBtn);
+  canvas.appendChild(span);
+}
+async function exportPDF() {
+  showToast('📄 Generating PDF...');
+  const el = document.getElementById('scrapbook-page');
+  const hide = document.querySelectorAll('.photo-remove,.remove-sticker,.sticker-section');
+  hide.forEach(e => { e._d = e.style.display; e.style.display = 'none'; });
+  try {
+    const canvas = await html2canvas(el, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', logging:false });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const pW = pdf.internal.pageSize.getWidth();
+    const pH = pdf.internal.pageSize.getHeight();
+    const ratio = Math.min(pW/canvas.width, pH/canvas.height) * 3.78;
+    const fW = canvas.width*ratio, fH = canvas.height*ratio;
+    pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',(pW-fW)/2,0,fW,Math.min(fH,pH));
+    const title = (document.getElementById('trip-title').value || 'trip').replace(/\s+/g,'-').toLowerCase();
+    pdf.save(`${title}.pdf`);
+    showToast('✅ PDF exported!');
+  } catch (err) {
+    console.error(err);
+    showToast('⚠️ Export failed. Try Ctrl+P to print.');
+  }
+  hide.forEach(e => { e.style.display = e._d; });
+}
+function openShareModal() {
+  const trip = trips.find(t => t.id === currentTripId);
+  if (!trip) return;
+  const url = tripShareUrl(trip);
+  document.getElementById('share-url-input').value = url;
+  document.getElementById('share-modal').classList.add('active');
+}
+async function copyShareLink() {
+  const url = document.getElementById('share-url-input').value;
+  try { await navigator.clipboard.writeText(url); }
+  catch {
+    const el = document.getElementById('share-url-input');
+    el.select(); document.execCommand('copy');
+  }
+  showToast('🔗 Link copied to clipboard!');
+}
+
+function renderRelatedTrips(currentTrip) {
+  const strip = document.getElementById('related-strip');
+  const grid = document.getElementById('related-grid');
+  const others = trips.filter(t => t.id !== currentTrip.id).slice(0, 3);
+  if (!others.length) { strip.style.display = 'none'; grid.innerHTML = ''; return; }
+  strip.style.display = 'block';
+  grid.innerHTML = '';
+  others.forEach(trip => {
+    const card = document.createElement('div');
+    card.className = 'related-card';
+    const thumb = trip.cover_photo || ((trip.photos || [])[0] || '');
+    card.innerHTML = `
+      <div class="related-thumb">${thumb ? `<img src="${thumb}" alt="${escapeHtml(trip.title || 'Trip cover')}">` : '✈️'}</div>
+      <div class="related-body">
+        <h4>${escapeHtml(trip.title || 'Untitled trip')}</h4>
+        <p>${escapeHtml(trip.location || 'Somewhere lovely')}</p>
+      </div>`;
+    card.onclick = () => { history.pushState({}, '', tripShareUrl(trip)); routeFromLocation(); };
+    grid.appendChild(card);
+  });
+}
+
+function buildReadonlyPage(targetEl, trip) {
+  targetEl.innerHTML = '';
+  const tape = document.createElement('div'); tape.className = 'tape-top'; targetEl.appendChild(tape);
+  const stamp = document.createElement('div'); stamp.className = 'page-stamp';
+  stamp.innerHTML = `<span class="stamp-icon">📮</span><span>${escapeHtml(trip.location || 'Memories')}</span>`;
+  targetEl.appendChild(stamp);
+  const content = document.createElement('div'); content.className = 'page-content';
+  const tg = document.createElement('div'); tg.className = 'field-group';
+  tg.innerHTML = `<span class="field-label">Trip Title</span><div style="font-family:'Playfair Display',serif;font-size:2.2rem;font-style:italic;border-bottom:2px solid var(--aged);padding-bottom:4px;max-width:calc(100% - 110px)">${escapeHtml(trip.title || 'Untitled')}</div>`;
+  content.appendChild(tg);
+  const meta = document.createElement('div'); meta.className = 'page-meta-row';
+  meta.innerHTML = `
+    <div class="field-inline"><span class="field-inline-icon">📍</span><span class="field-text" style="border:none">${escapeHtml(trip.location || 'Unknown location')}</span></div>
+    <div class="field-inline"><span class="field-inline-icon">📅</span><span class="field-text" style="border:none">${escapeHtml(trip.trip_date ? formatDate(trip.trip_date) : 'Date unknown')}</span></div>`;
+  content.appendChild(meta);
+  if (trip.story) {
+    const sg = document.createElement('div'); sg.className='field-group'; sg.style.marginTop='24px';
+    sg.innerHTML = `<span class="field-label">Travel Story</span><p style="font-family:'Caveat',cursive;font-size:1.25rem;line-height:1.8;white-space:pre-wrap">${escapeHtml(trip.story)}</p>`;
+    content.appendChild(sg);
+  }
+  if ((trip.photos || []).length > 0) {
+    const ps = document.createElement('div'); ps.className = 'collage-section';
+    ps.innerHTML = `<div class="collage-section-title">Photo Memories</div><div class="photo-collage"></div>`;
+    const collage = ps.querySelector('.photo-collage');
+    trip.photos.forEach((src, i) => {
+      const item = document.createElement('div');
+      item.className = `photo-item rot${i % 5}`;
+      item.innerHTML = `<div class="polaroid"><img src="${src}" alt="photo"><div class="polaroid-caption">memory ${i + 1}</div></div>`;
+      collage.appendChild(item);
+    });
+    content.appendChild(ps);
+  }
+  if ((trip.stickers || []).length > 0) {
+    const sc = document.createElement('div'); sc.className = 'sticker-canvas';
+    trip.stickers.forEach(s => { const sp = document.createElement('span'); sp.className='placed-sticker'; sp.style.pointerEvents='none'; sp.textContent=s; sc.appendChild(sp); });
+    content.appendChild(sc);
+  }
+  targetEl.appendChild(content);
+}
+function showShareView(trip) {
+  document.getElementById('main-header').style.display = 'none';
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-share').style.display = 'block';
+  document.getElementById('share-date').textContent = trip.trip_date ? formatDate(trip.trip_date) : '';
+  document.getElementById('share-location-label').textContent = trip.location ? `📍 ${trip.location}` : '';
+  document.getElementById('share-hero-title').textContent = trip.title || 'Untitled trip';
+  document.getElementById('share-story-preview').textContent = trip.story ? `${trip.story.slice(0, 180)}${trip.story.length > 180 ? '…' : ''}` : 'A scrapbook page full of photos, places, and little memories.';
+  const chips = document.getElementById('share-chips');
+  chips.innerHTML = '';
+  [
+    `${(trip.photos || []).length} photo${(trip.photos || []).length === 1 ? '' : 's'}`,
+    `${(trip.stickers || []).length} sticker${(trip.stickers || []).length === 1 ? '' : 's'}`,
+    trip.location || 'Shared publicly'
+  ].filter(Boolean).forEach(label => {
+    const chip = document.createElement('span');
+    chip.className = 'share-chip';
+    chip.textContent = label;
+    chips.appendChild(chip);
+  });
+  const hero = document.getElementById('share-hero-media');
+  const cover = trip.cover_photo || ((trip.photos || [])[0] || '');
+  hero.innerHTML = cover ? `<img src="${cover}" alt="${escapeHtml(trip.title || 'Trip cover')}">` : `<div class="share-hero-placeholder">🌍</div>`;
+  buildReadonlyPage(document.getElementById('share-scrapbook-page'), trip);
+  renderRelatedTrips(trip);
+}
+function showMainApp() {
+  document.getElementById('main-header').style.display = '';
+  document.getElementById('view-share').style.display = 'none';
+  navigate('timeline');
+}
+async function deleteTrip(id) {
+  if (!confirm('Delete this trip?')) return;
+  showLoading('Deleting trip…');
+  try {
+    await deleteTripRemote(id);
+    trips = trips.filter(t => t.id !== id);
+    if (currentTripId === id) currentTripId = null;
+    renderTimeline();
+    showToast('🗑 Trip deleted');
+  } catch (err) {
+    console.error(err);
+    showToast(`⚠️ ${err.message}`);
+  } finally {
+    hideLoading();
+  }
+}
+async function routeFromLocation() {
+  const path = decodeURIComponent(window.location.pathname);
+  if (path.startsWith('/trip/')) {
+    const slug = path.slice('/trip/'.length);
+    showLoading('Loading shared trip…');
+    try {
+      const trip = await fetchTripBySlug(slug);
+      if (!trip) throw new Error('Trip not found');
+      showShareView(trip);
+    } catch (err) {
+      console.error(err);
+      showMainApp();
+      navigate('timeline');
+      showToast('⚠️ Shared trip not found');
+    } finally {
+      hideLoading();
+    }
+    return;
+  }
+  if (path === '/about') navigate('about');
+  else if (path === '/page' && currentTripId) navigate('page');
+  else navigate('timeline');
+}
+async function init() {
+  buildStickerTray();
+  showLoading('Loading trips from Supabase…');
+  try {
+    await fetchPublicTrips();
+    renderTimeline();
+    await routeFromLocation();
+  } catch (err) {
+    console.error(err);
+    renderTimeline();
+    showToast(`⚠️ ${err.message}`);
+  } finally {
+    hideLoading();
+  }
+}
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key==='s') { e.preventDefault(); if (currentTripId) savePage(); }
+  if (e.key==='Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+  }
+});
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('active'); });
+});
+window.addEventListener('popstate', () => routeFromLocation());
+init();
+</script>
+</body>
+</html>

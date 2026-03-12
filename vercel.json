@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/trip/(.*)", "destination": "/index.html" },
+    { "source": "/about", "destination": "/index.html" },
+    { "source": "/page", "destination": "/index.html" },
+    { "source": "/", "destination": "/index.html" }
+  ]
+}
