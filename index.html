@@ -634,7 +634,7 @@ function showToast(msg, duration=2800) {
   setTimeout(() => el.remove(), duration);
 }
 function tripShareUrl(trip) {
-  return `${window.location.origin}/trip/${encodeURIComponent(trip.slug)}`;
+  return `${window.location.origin}/?trip=${encodeURIComponent(trip.slug)}`;
 }
 function upsertTripInList(trip) {
   const idx = trips.findIndex(t => t.id === trip.id);
@@ -991,26 +991,46 @@ function placeStickerEl(emoji) {
 }
 async function exportPDF() {
   showToast('📄 Generating PDF...');
-  const el = document.getElementById('scrapbook-page');
-  const hide = document.querySelectorAll('.photo-remove,.remove-sticker,.sticker-section');
-  hide.forEach(e => { e._d = e.style.display; e.style.display = 'none'; });
+  const trip = currentEditorState();
+  const wrapper = document.createElement('div');
+  wrapper.style.position = 'fixed';
+  wrapper.style.left = '-10000px';
+  wrapper.style.top = '0';
+  wrapper.style.width = '980px';
+  wrapper.style.padding = '40px';
+  wrapper.style.background = '#faf6f0';
+  const exportPage = document.createElement('div');
+  exportPage.className = 'scrapbook-page scrapbook-readonly';
+  buildReadonlyPage(exportPage, trip);
+  wrapper.appendChild(exportPage);
+  document.body.appendChild(wrapper);
   try {
-    const canvas = await html2canvas(el, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', logging:false });
+    const canvas = await html2canvas(exportPage, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false, windowWidth: 980 });
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    const pW = pdf.internal.pageSize.getWidth();
-    const pH = pdf.internal.pageSize.getHeight();
-    const ratio = Math.min(pW/canvas.width, pH/canvas.height) * 3.78;
-    const fW = canvas.width*ratio, fH = canvas.height*ratio;
-    pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',(pW-fW)/2,0,fW,Math.min(fH,pH));
-    const title = (document.getElementById('trip-title').value || 'trip').replace(/\s+/g,'-').toLowerCase();
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const availableWidth = pageWidth - margin * 2;
+    const availableHeight = pageHeight - margin * 2;
+    let imageWidth = availableWidth;
+    let imageHeight = canvas.height * imageWidth / canvas.width;
+    if (imageHeight > availableHeight) {
+      imageHeight = availableHeight;
+      imageWidth = canvas.width * imageHeight / canvas.height;
+    }
+    const x = (pageWidth - imageWidth) / 2;
+    const y = (pageHeight - imageHeight) / 2;
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, imageWidth, imageHeight);
+    const title = (trip.title || 'trip').replace(/\s+/g, '-').toLowerCase();
     pdf.save(`${title}.pdf`);
     showToast('✅ PDF exported!');
   } catch (err) {
     console.error(err);
     showToast('⚠️ Export failed. Try Ctrl+P to print.');
+  } finally {
+    wrapper.remove();
   }
-  hide.forEach(e => { e.style.display = e._d; });
 }
 function openShareModal() {
   const trip = trips.find(t => t.id === currentTripId);
@@ -1098,8 +1118,14 @@ async function deleteTrip(id) {
 }
 async function routeFromLocation() {
   const path = decodeURIComponent(window.location.pathname);
-  if (path.startsWith('/trip/')) {
-    const slug = path.slice('/trip/'.length);
+  const params = new URLSearchParams(window.location.search);
+  const hash = decodeURIComponent(window.location.hash || '');
+  let slug = params.get('trip');
+  if (!slug && path.startsWith('/trip/')) slug = path.slice('/trip/'.length);
+  if (!slug && (hash.startsWith('#/trip/') || hash.startsWith('#trip/'))) {
+    slug = hash.replace(/^#\/?trip\//, '');
+  }
+  if (slug) {
     showLoading('Loading shared trip…');
     try {
       const trip = await fetchTripBySlug(slug);
